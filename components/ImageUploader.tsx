@@ -1,4 +1,3 @@
-
 import React, { useCallback, useState } from 'react';
 
 interface ImageUploaderProps {
@@ -65,9 +64,9 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({ onImagesUpload, disabled 
             <p className={`mb-2 text-sm ${disabled ? 'text-gray-500' : 'text-gray-400'}`}>
                 <span className="font-semibold">Click to upload</span> or drag and drop
             </p>
-            <p className={`text-xs ${disabled ? 'text-gray-600' : 'text-gray-500'}`}>PNG, JPG, or WEBP</p>
+            <p className={`text-xs ${disabled ? 'text-gray-600' : 'text-gray-500'}`}>For best results, upload high-quality PNG, JPG, WEBP, HEIC, or HEIF.</p>
         </div>
-        <input id="dropzone-file" type="file" className="hidden" multiple accept="image/png, image/jpeg, image/webp" onChange={handleFileChange} disabled={disabled} />
+        <input id="dropzone-file" type="file" className="hidden" multiple accept="image/png, image/jpeg, image/webp, image/heic, image/heif" onChange={handleFileChange} disabled={disabled} />
       </label>
     </div>
   );
