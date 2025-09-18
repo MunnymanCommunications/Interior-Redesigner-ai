@@ -24,7 +24,19 @@ const App: React.FC = () => {
     const [isAnalyzed, setIsAnalyzed] = useState(false);
     const [showOriginal, setShowOriginal] = useState(false);
     const [isFullscreen, setIsFullscreen] = useState(false);
+    const [canShare, setCanShare] = useState(false);
     const imageContainerRef = useRef<HTMLDivElement>(null);
+
+    useEffect(() => {
+        // Check for Web Share API with file sharing support
+        if (navigator.share && typeof navigator.canShare === 'function') {
+            // Create a dummy file to check for file sharing capability.
+            const dummyFile = new File([""], "dummy.txt", { type: "text/plain" });
+            if (navigator.canShare({ files: [dummyFile] })) {
+                setCanShare(true);
+            }
+        }
+    }, []);
 
     const handleRestart = useCallback(() => {
         setOriginalImages([]);
@@ -153,6 +165,28 @@ const App: React.FC = () => {
         document.body.removeChild(link);
     }, [displayImage, originalDisplayImage, showOriginal]);
 
+    const handleShareImage = useCallback(async () => {
+        const imageToShare = showOriginal ? originalDisplayImage : displayImage;
+        if (!imageToShare || !canShare) return;
+
+        try {
+            const response = await fetch(imageToShare);
+            const blob = await response.blob();
+            const file = new File([blob], `design-pro-${new Date().toISOString()}.png`, { type: blob.type });
+
+            await navigator.share({
+                files: [file],
+                title: 'AI Interior Design',
+                text: 'Check out this design I created with AI Interior Designer Pro!',
+            });
+        } catch (err: any) {
+            if (err.name !== 'AbortError') {
+                console.error('Error sharing image:', err);
+                setError("Sorry, sharing failed. Please try again.");
+            }
+        }
+    }, [displayImage, originalDisplayImage, showOriginal, canShare]);
+
     const currentImageSrc = showOriginal ? originalDisplayImage : displayImage;
     const canToggle = originalDisplayImage && displayImage && originalDisplayImage !== displayImage;
 
@@ -172,6 +206,15 @@ const App: React.FC = () => {
                                     onClick={() => setIsFullscreen(true)}
                                 />
                                 <div className="absolute top-4 right-4 flex items-center gap-2">
+                                    {canToggle && canShare && (
+                                        <button 
+                                            onClick={handleShareImage}
+                                            className="p-2 bg-gray-900/60 backdrop-blur-sm rounded-full text-white hover:bg-gray-800/80 transition"
+                                            aria-label="Share image"
+                                        >
+                                            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path d="M15 8a3 3 0 10-2.977-2.63l-4.94 2.47a3 3 0 100 4.319l4.94 2.47a3 3 0 10.895-1.789l-4.94-2.47a3.027 3.027 0 000-.74l4.94-2.47C13.456 7.68 14.19 8 15 8z" /></svg>
+                                        </button>
+                                    )}
                                     <button 
                                         onClick={handleDownloadImage}
                                         className="p-2 bg-gray-900/60 backdrop-blur-sm rounded-full text-white hover:bg-gray-800/80 transition"
